@@ -1,21 +1,27 @@
 import cv2
 import numpy as np
+from numpy import testing
+import semantic_segmentation
 
-# cap = cv2.VideoCapture(r"cars.mp4")
-cap = cv2.VideoCapture(0)
+from copy import copy
+
+# --- Camera or demo video or demo picture --- #
+# cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(r"images/cars.mp4")
+img = cv2.imread(r"images/0197.jpg")
 
 whT = 320
 confThreshold = 0.5
 nmsThreshold = 0.2
 
-#### LOAD MODEL
-## Coco Names
+# --- LOAD MODEL --- #
+# Coco Names
 classesFile = "coco.names"
 classNames = []
 with open(classesFile, 'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
 
-## Model Files
+# Model Files
 # modelConfiguration = "yolov3-tiny.cfg"
 # modelWeights = "yolov3-tiny.weights"
 modelConfiguration = "yolov3-320.cfg"
@@ -48,33 +54,44 @@ def findObjects(outputs, img):
         box = bbox[i]
         x, y, w, h = box[0], box[1], box[2], box[3]
 
+        return img[y:y+h, x:x+w] # Detect just 1 object
 
-        # Here you can get the closer area where the detected item resides
-        # if limit == 0:
-        #     imagio = img[y:y + h, x:x + w]
-        #     cv2.imshow('Frame', imagio)
-        #     cv2.waitKey(1)
+        # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0 , 255), 2)
+        # cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i] * 100)}%',
+        #           (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
 
 
-        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0 , 255), 2)
-        cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i] * 100)}%',
-                  (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
+# --- IMAGE --- #
+blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
+net.setInput(blob)
 
-# limit = 0
-success = True
-while cap.isOpened():
-    success, img = cap.read()
+layersNames = net.getLayerNames()
+outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
+outputs = net.forward(outputNames)
 
-    blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
-    net.setInput(blob)
+img_before = copy(img)
+img_after = findObjects(outputs, img)
+_, segmented_image = semantic_segmentation.segment(img_after)
 
-    layersNames = net.getLayerNames()
-    outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
-    outputs = net.forward(outputNames)
-    findObjects(outputs, img)
+cv2.imshow('Image before', img_before)
+cv2.imshow('Image after', img_after)
+cv2.imshow('Mask', segmented_image)
+cv2.waitKey(0)
 
-    cv2.imshow('Image', img)
-    cv2.waitKey(1)
+# # --- VIDEO --- #
+# while cap.isOpened():
+#     success, img = cap.read()
 
-cap.release()
-cv2.destroyAllWindows()
+#     blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
+#     net.setInput(blob)
+
+#     layersNames = net.getLayerNames()
+#     outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
+#     outputs = net.forward(outputNames)
+#     findObjects(outputs, img)
+
+#     cv2.imshow('Image', img)
+#     cv2.waitKey(1)
+
+# cap.release()
+# cv2.destroyAllWindows()
