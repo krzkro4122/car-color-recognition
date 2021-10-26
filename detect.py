@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from numpy import testing
 import semantic_segmentation
 
 from copy import copy
@@ -29,7 +28,7 @@ modelWeights = "yolov3-320.weights"
 
 net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+# net.setPreferableTarget(cv2.dnn.DDN_TARGET_CPU)
 
 def findObjects(outputs, img):
     hT, wT, cT = img.shape
