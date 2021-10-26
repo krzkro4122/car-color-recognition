@@ -70,11 +70,16 @@ outputs = net.forward(outputNames)
 
 img_before = copy(img)
 img_after = findObjects(outputs, img)
-_, segmented_image = semantic_segmentation.segment(img_after)
+_, mask = semantic_segmentation.segment(img_after)
+
+mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+thresh, mask_black_and_white = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+masked_image = cv2.bitwise_or(img_after, img_after, mask=mask_black_and_white)
 
 cv2.imshow('Image before', img_before)
 cv2.imshow('Image after', img_after)
-cv2.imshow('Mask', segmented_image)
+cv2.imshow('Mask', mask)
+cv2.imshow('Masked image', masked_image)
 cv2.waitKey(0)
 
 # # --- VIDEO --- #
