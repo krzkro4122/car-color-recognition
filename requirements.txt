@@ -48,7 +48,7 @@ Pillow==8.4.0
 pixellib==0.7.1
 platformdirs==2.4.0
 portalocker==2.3.2
-protobuf==3.19.0
+# protobuf==3.19.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pydot==1.4.2
