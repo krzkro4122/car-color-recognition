@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-# import semantic_segmentation
+import semantic_segmentation
 
 from copy import copy
 
@@ -78,8 +78,11 @@ masked_image = cv2.bitwise_or(img_after, img_after, mask=mask_black_and_white)
 
 cv2.imshow('Image before', img)
 cv2.imshow('Image after', img_after)
-cv2.imshow('Mask', mask)
+cv2.imshow('Mask', mask_black_and_white)
 cv2.imshow('Masked image', masked_image)
+
+
+
 cv2.waitKey(0)
 
 # # --- VIDEO --- #
