@@ -1,4 +1,5 @@
 venv
-train/*
+/assets/train/*
 config/*.weights
 config/*.h5
+config/*.pkl
