@@ -3,7 +3,7 @@ import os
 import cv2
 import copy
 import numpy as np
-import semantic_segmentation
+# import semantic_segmentation
 
 from collections import Counter
 from sklearn.model_selection import train_test_split
@@ -67,7 +67,7 @@ class ColorDescriptor:
         # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
         # thresh, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
         # Extract color histogram
-        hist = cv2.calcHist([image], [0, 1, 2], mask, self.bins, [0, 256, 0, 256, 0, 256])
+        hist = cv2.calcHist([image], [0, 1, 2], None, self.bins, [0, 256, 0, 256, 0, 256])
         hist = cv2.normalize(hist, hist).flatten()
         features.extend(hist)
         return features
@@ -155,10 +155,13 @@ if __name__ == "__main__":
     mlp.fit(X_train, y_train)
     print("Done")
 
+    print("Pickling model...", end="")
+    joblib.dump(mlp, 'config/color_recognition_mlp.pkl')
+    print("Done")
+
     y_pred = mlp.predict(X_test)
+    print('Percentage correct: ', 100*np.sum(y_pred == y_test)/len(y_test))
 
     # print(y_pred[200])
     # cv2.imshow('lol', X_test_bkp[200])
     # cv2.waitKey(0)
-
-    print('Percentage correct: ', 100*np.sum(y_pred == y_test)/len(y_test))
