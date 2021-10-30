@@ -1,4 +1,3 @@
-import pixellib
 from pixellib.semantic import semantic_segmentation
 
 def segment(image):
