@@ -3,7 +3,7 @@ import os
 import cv2
 import copy
 import numpy as np
-# import semantic_segmentation
+import semantic_segmentation
 
 from collections import Counter
 from sklearn.model_selection import train_test_split
@@ -48,14 +48,13 @@ def resize_all(src, pklname, include, width=228, height=None):
                     break
                 if file[-3:] in {'jpg', 'png'}:
                     im = cv2.imread(os.path.join(current_path, file))
-                    im = cv2.resize(im, (width, height)) #[:,:,::-1]
+                    im = cv2.resize(im, (width, height))
                     data['label'].append(subdir)
                     data['filename'].append(file)
                     data['data'].append(im)
 
         joblib.dump(data, pklname)
 
-import tensorflow as tf
 class ColorDescriptor:
     def __init__(self, bins):
         self.bins = bins
@@ -116,8 +115,8 @@ if __name__ == "__main__":
     print("Feature extraction...", end="")
     X_train_bkp = copy.copy(X_train)
     X_test_bkp = copy.copy(X_test)
-    X_train = list(map(lambda x:cd.describe(tf.constant(x)), X_train))
-    X_test = list(map(lambda x:cd.describe(tf.constant(x)), X_test))
+    X_train = list(map(lambda x:cd.describe(x), X_train))
+    X_test = list(map(lambda x:cd.describe(x), X_test))
     print("Done")
 
     # print("Machine is learning...", end="")
@@ -138,6 +137,7 @@ if __name__ == "__main__":
 
     print("Unpickling model...", end="")
     mlp = joblib.load(config_file)
+    print("Done")
 
     y_pred = mlp.predict(X_test)
     print('Percentage correct: ', 100*np.sum(y_pred == y_test)/len(y_test))

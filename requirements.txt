@@ -28,6 +28,7 @@ imantics==0.1.12
 imgaug==0.4.0
 importlib-resources==5.3.0
 iopath==0.1.9
+joblib==1.1.0
 jsonschema==4.1.2
 keras==2.6.0
 Keras-Preprocessing==1.1.2
@@ -41,14 +42,14 @@ networkx==2.6.3
 numpy==1.19.5
 oauthlib==3.1.1
 omegaconf==2.1.1
-opencv-python==4.5.4.58
+opencv-python==4.1.2.30
 opt-einsum==3.3.0
 pathspec==0.9.0
 Pillow==8.4.0
 pixellib==0.7.1
 platformdirs==2.4.0
 portalocker==2.3.2
-# protobuf==3.19.0
+protobuf==3.19.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pydot==1.4.2
@@ -65,9 +66,11 @@ requests==2.26.0
 requests-oauthlib==1.3.0
 rsa==4.7.2
 scikit-image==0.18.3
+scikit-learn==1.0.1
 scipy==1.7.1
 Shapely==1.8.0
 six==1.15.0
+sklearn==0.0
 tabulate==0.8.9
 tensorboard==2.7.0
 tensorboard-data-server==0.6.1
@@ -75,6 +78,7 @@ tensorboard-plugin-wit==1.8.0
 tensorflow==2.6.0
 tensorflow-estimator==2.6.0
 termcolor==1.1.0
+threadpoolctl==3.0.0
 tifffile==2021.10.12
 tomli==1.2.2
 tqdm==4.62.3

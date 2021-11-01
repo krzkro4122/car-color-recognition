@@ -1,14 +1,14 @@
 import cv2
+import joblib
 import numpy as np
-import semantic_segmentation
 
+from preprocess_train_data import ColorDescriptor
 from copy import copy
+from fastseg import MobileV3Large
+from fastseg.image import colorize
 
-# --- Camera or demo video or demo picture --- #
-img = cv2.imread(r"assets/0197.jpg")
-# cap = cv2.VideoCapture(0)
-# cap = cv2.VideoCapture(r"images/cars.mp4")
 
+# --- DETECTION CONFIGURATION --- #
 whT = 320
 confThreshold = 0.5
 nmsThreshold = 0.2
@@ -51,54 +51,110 @@ def findObjects(outputs, img):
     indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
 
     for i in indices:
+        i = i[0] # Only for video
         box = bbox[i]
         x, y, w, h = box[0], box[1], box[2], box[3]
 
-        return img[y:y + h, x:x + w] # Detect just 1 object
+        return x, y, w, h
 
         # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0 , 255), 2)
         # cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i] * 100)}%',
         #           (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
 
-# --- IMAGE --- #
-blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
-net.setInput(blob)
+def detect_from_image(img):
 
-layersNames = net.getLayerNames()
-outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
-outputs = net.forward(outputNames)
-
-img_before = copy(img)
-img_after = findObjects(outputs, img)
-_, mask = semantic_segmentation.segment(img_after)
-
-mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-thresh, mask_black_and_white = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-masked_image = cv2.bitwise_or(img_after, img_after, mask=mask_black_and_white)
-
-cv2.imshow('Image before', img)
-cv2.imshow('Image after', img_after)
-cv2.imshow('Mask', mask_black_and_white)
-cv2.imshow('Masked image', masked_image)
+    print("Unpickling model...", end="")
+    config_file = r"config/color_recognition_mlp.pkl"
+    mlp = joblib.load(config_file)
+    print("Done")
 
 
+    blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
+    net.setInput(blob)
+    layersNames = net.getLayerNames()
+    outputNames = [(layersNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
+    outputs = net.forward(outputNames)
 
-cv2.waitKey(0)
+    try:
+        x, y, w, h = findObjects(outputs, img)
+    except:
+        print(f"Couldn't find a car in given frame")
+        exit()
 
-# # --- VIDEO --- #
-# while cap.isOpened():
-#     success, img = cap.read()
+    img_cropped = img[y:y + h, x:x + w]
 
-#     blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
-#     net.setInput(blob)
+    width = height = 228
+    img_cropped = cv2.resize(img_cropped, (width, height))
 
-#     layersNames = net.getLayerNames()
-#     outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
-#     outputs = net.forward(outputNames)
-#     findObjects(outputs, img)
+    cd = ColorDescriptor((16, 16, 16))
+    image = cd.describe(img_cropped)
 
-#     cv2.imshow('Image', img)
-#     cv2.waitKey(1)
+    prediction = mlp.predict([image])
 
-# cap.release()
-# cv2.destroyAllWindows()
+    img_cropped = cv2.putText(img_cropped, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                    1, (255, 0, 0), 2, cv2.LINE_AA)
+
+    cv2.imshow('Starting image', img)
+    cv2.imshow('Image cropped', img_cropped)
+    # cv2.imshow('Mask', colorized)
+    cv2.waitKey(0)
+
+def detect_from_video(cap):
+
+    print("Unpickling model...", end="")
+    config_file = r"config/color_recognition_mlp.pkl"
+    mlp = joblib.load(config_file)
+    print("Done")
+
+    while cap.isOpened():
+        success, img = cap.read()
+
+        blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
+        net.setInput(blob)
+
+        layersNames = net.getLayerNames()
+        outputNames = [(layersNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
+        outputs = net.forward(outputNames)
+        img = findObjects(outputs, img)
+
+        width = height = 228
+        img = cv2.resize(img, (width, height)) #[:,:,::-1]
+
+        cd = ColorDescriptor((16, 16, 16))
+        image = cd.describe(img)
+
+        prediction = mlp.predict([image])
+
+        # font
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        # org
+        org = (50, 50)
+
+        # fontScale
+        fontScale = 1
+
+        # Blue color in BGR
+        color = (255, 0, 0)
+
+        # Line thickness of 2 px
+        thickness = 2
+
+        # Using cv2.putText() method
+        img = cv2.putText(img, prediction[0], org, font,
+                        fontScale, color, thickness, cv2.LINE_AA)
+        cv2.imshow('Image', img)
+        cv2.waitKey(1)
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    # --- Camera or demo video or demo picture --- #
+    img = cv2.imread(r"assets/real_tests/sanfran_white.jpg")
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(r"assets/cars.mp4")
+
+    detect_from_image(img)
+    # detect_from_video(cap)
