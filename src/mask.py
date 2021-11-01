@@ -1,27 +1,14 @@
-import cv2
-import time
-import numpy as np
+import pixellib
+import glob
 
-from fastseg import MobileV3Small
-from fastseg.image import colorize
+from pixellib.torchbackend.instance import instanceSegmentation
 
+ins = instanceSegmentation()
+ins.load_model(r"config/pointrend_resnet50.pkl", detection_speed="normal")
+# ins.load_model(r"config/pointrend_resnet50.pkl", detection_speed="rapid")
+target_classes = ins.select_target_classes(car = True)
+for image_name in glob.glob("assets/testing/0014.jpg"):
+    results, output = ins.segmentImage(image_name, segment_target_classes = target_classes, extract_segmented_objects=True,
+    save_extracted_objects=True, output_image_name="test.jpg")
 
-image = cv2.imread("assets/tesla.jpg")
-# image = image[:, :, ::-1].copy() # Convert to RGB
-
-print("Evaluating model...", end="")
-start = time.time()
-
-model = MobileV3Small.from_pretrained()
-model.eval()
-
-stop = time.time()
-print(f"Done in {stop-start:.2f}s")
-
-labels = model.predict_one(image)
-
-colorized = colorize(labels)
-colorized = np.array(colorized)[:, :, ::-1]
-
-cv2.imshow('lol', colorized)
-cv2.waitKey(0)
+print(results)
