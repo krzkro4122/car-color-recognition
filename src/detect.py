@@ -125,24 +125,8 @@ def detect_from_video(cap):
 
         prediction = mlp.predict([image])
 
-        # font
-        font = cv2.FONT_HERSHEY_SIMPLEX
-
-        # org
-        org = (50, 50)
-
-        # fontScale
-        fontScale = 1
-
-        # Blue color in BGR
-        color = (255, 0, 0)
-
-        # Line thickness of 2 px
-        thickness = 2
-
-        # Using cv2.putText() method
-        img = cv2.putText(img, prediction[0], org, font,
-                        fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN,
+                        1, (255, 0, 0), 2, cv2.LINE_AA)
         cv2.imshow('Image', img)
         cv2.waitKey(1)
 

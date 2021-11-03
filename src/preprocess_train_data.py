@@ -3,7 +3,6 @@ import os
 import cv2
 import copy
 import numpy as np
-import semantic_segmentation
 
 from collections import Counter
 from sklearn.model_selection import train_test_split
@@ -44,8 +43,8 @@ def resize_all(src, pklname, include, width=228, height=None):
             current_path = os.path.join(src, subdir)
 
             for index, file in enumerate(os.listdir(current_path)):
-                if index >= 1000:
-                    break
+                # if index >= 3000:
+                #     break
                 if file[-3:] in {'jpg', 'png'}:
                     im = cv2.imread(os.path.join(current_path, file))
                     im = cv2.resize(im, (width, height))
@@ -61,11 +60,9 @@ class ColorDescriptor:
 
     def describe(self, image):
         features = []
-        # Add a mask
-        # _, mask = semantic_segmentation.segment(image)
-        # mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-        # thresh, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
-        # Extract color histogram
+
+        # NEED SOME MASK HERE !!!
+
         hist = cv2.calcHist([image], [0, 1, 2], None, self.bins, [0, 256, 0, 256, 0, 256])
         hist = cv2.normalize(hist, hist).flatten()
         features.extend(hist)
@@ -91,13 +88,13 @@ if __name__ == "__main__":
     data = joblib.load(f'{pkl_name}_{width}x{width}px.pkl')
     print("Done")
 
-    # # Post-unpickling Info
-    # print('number of samples: ', len(data['data']))
-    # print('keys: ', list(data.keys()))
-    # print('description: ', data['description'])
-    # print('image shape: ', data['data'][0].shape)
-    # print('labels:', np.unique(data['label']))
-    # print(f"The data spread: {Counter(data['label'])}")
+    # Post-unpickling Info
+    print('number of samples: ', len(data['data']))
+    print('keys: ', list(data.keys()))
+    print('description: ', data['description'])
+    print('image shape: ', data['data'][0].shape)
+    print('labels:', np.unique(data['label']))
+    print(f"The data spread: {Counter(data['label'])}")
 
     X = np.array(data['data'])
     y = np.array(data['label'])
@@ -110,7 +107,7 @@ if __name__ == "__main__":
         random_state=42,
     )
 
-    # # Histograms instead of raw images
+    # Histograms instead of raw images
     cd = ColorDescriptor((16, 16, 16))
     print("Feature extraction...", end="")
     X_train_bkp = copy.copy(X_train)
@@ -144,6 +141,21 @@ if __name__ == "__main__":
 
     end_stamp = time.time()
     print(f"Run took: {int(end_stamp - start_stamp)}s")
+
+    # # Show predictions for a given color
+    # color = 'black'
+    # for index, prediction in enumerate(y_pred):
+    #     # if prediction == color:
+    #     if prediction != y_test[index]:
+    #         img = X_test_bkp[index]
+    #         img = cv2.putText(img, prediction.upper(), (50, 50), cv2.FONT_HERSHEY_PLAIN,
+    #             2, (255, 255, 255), 2, cv2.LINE_AA)
+    #         cv2.imshow(f"{index}", img)
+    #         cv2.waitKey(0)
+
+    from sklearn.metrics import classification_report
+    print('Results on the test set:')
+    print(classification_report(y_test, y_pred))
 
     # print(y_pred[200])
     # cv2.imshow('lol', X_test_bkp[200])
