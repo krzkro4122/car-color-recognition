@@ -3,9 +3,6 @@ import joblib
 import numpy as np
 
 from preprocess_train_data import ColorDescriptor
-from copy import copy
-from fastseg import MobileV3Large
-from fastseg.image import colorize
 
 
 # --- DETECTION CONFIGURATION --- #
@@ -87,22 +84,20 @@ def detect_from_image(img):
     img_cropped = cv2.resize(img_cropped, (width, height))
 
     cd = ColorDescriptor((16, 16, 16))
-    image = cd.describe(img_cropped)
+    image_colors = cd.describe(img_cropped)
 
-    prediction = mlp.predict([image])
+    prediction = mlp.predict([image_colors])
 
-    img_cropped = cv2.putText(img_cropped, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
+    img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (255, 0, 0), 2, cv2.LINE_AA)
-
-    cv2.imshow('Starting image', img)
-    cv2.imshow('Image cropped', img_cropped)
-    # cv2.imshow('Mask', colorized)
+    cv2.imshow('Prediction', img)
+    cv2.imshow('Cropped', img_cropped)
     cv2.waitKey(0)
 
 def detect_from_video(cap):
 
     print("Unpickling model...", end="")
-    config_file = r"config/color_recognition_mlp.pkl"
+    config_file = r"config/color_recognition_mlp_masked.pkl"
     mlp = joblib.load(config_file)
     print("Done")
 
@@ -136,7 +131,7 @@ def detect_from_video(cap):
 
 if __name__ == "__main__":
     # --- Camera or demo video or demo picture --- #
-    img = cv2.imread(r"assets/real_tests/sanfran_white.jpg")
+    img = cv2.imread(r"assets/tesla.jpg")
     # cap = cv2.VideoCapture(0)
     cap = cv2.VideoCapture(r"assets/cars.mp4")
 

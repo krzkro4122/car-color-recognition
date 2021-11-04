@@ -7,6 +7,7 @@ import numpy as np
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
+from mask import MaskTransformer
 
 def resize_all(src, pklname, include, width=228, height=None):
     """
@@ -57,13 +58,14 @@ def resize_all(src, pklname, include, width=228, height=None):
 class ColorDescriptor:
     def __init__(self, bins):
         self.bins = bins
+        self.mt = MaskTransformer()
 
     def describe(self, image):
         features = []
 
-        # NEED SOME MASK HERE !!!
+        mask = self.mt.mask_frame(image)
 
-        hist = cv2.calcHist([image], [0, 1, 2], None, self.bins, [0, 256, 0, 256, 0, 256])
+        hist = cv2.calcHist([image], [0, 1, 2], mask, self.bins, [0, 256, 0, 256, 0, 256])
         hist = cv2.normalize(hist, hist).flatten()
         features.extend(hist)
         return features
@@ -75,8 +77,8 @@ if __name__ == "__main__":
 
     start_stamp = time.time()
 
-    data_path = fr'{os.getenv("HOME")}/rep/car-color-recognition/assets/train'
-    pkl_name = 'config/car_colors'
+    data_path = fr'{os.getenv("HOME")}/rep/car-color-recognition/assets/train_mask'
+    pkl_name = 'config/car_colors_masked'
     include = {'white', 'gray', 'yellow', 'black', 'blue', 'green', 'red', 'cyan'}
     width = 228
 
@@ -116,21 +118,21 @@ if __name__ == "__main__":
     X_test = list(map(lambda x:cd.describe(x), X_test))
     print("Done")
 
-    # print("Machine is learning...", end="")
-    # mlp = MLPClassifier(
-    #     hidden_layer_sizes=(100, 100, 100),
-    #     max_iter=5000, alpha=0.005,
-    #     solver='adam', random_state=2,
-    #     activation='relu', learning_rate='constant'
-    # )
-    # mlp.fit(X_train, y_train)
-    # print("Done")
+    print("Machine is learning...", end="")
+    mlp = MLPClassifier(
+        hidden_layer_sizes=(100, 100, 100),
+        max_iter=5000, alpha=0.005,
+        solver='adam', random_state=2,
+        activation='relu', learning_rate='constant'
+    )
+    mlp.fit(X_train, y_train)
+    print("Done")
 
-    config_file = 'config/color_recognition_mlp.pkl'
+    config_file = 'config/color_recognition_mlp_masked.pkl'
 
-    # print("Pickling model...", end="")
-    # joblib.dump(mlp, config_file)
-    # print("Done")
+    print("Pickling model...", end="")
+    joblib.dump(mlp, config_file)
+    print("Done")
 
     print("Unpickling model...", end="")
     mlp = joblib.load(config_file)
@@ -138,6 +140,10 @@ if __name__ == "__main__":
 
     y_pred = mlp.predict(X_test)
     print('Percentage correct: ', 100*np.sum(y_pred == y_test)/len(y_test))
+
+    from sklearn.metrics import classification_report
+    print('Results on the test set:')
+    print(classification_report(y_test, y_pred))
 
     end_stamp = time.time()
     print(f"Run took: {int(end_stamp - start_stamp)}s")
@@ -152,11 +158,3 @@ if __name__ == "__main__":
     #             2, (255, 255, 255), 2, cv2.LINE_AA)
     #         cv2.imshow(f"{index}", img)
     #         cv2.waitKey(0)
-
-    from sklearn.metrics import classification_report
-    print('Results on the test set:')
-    print(classification_report(y_test, y_pred))
-
-    # print(y_pred[200])
-    # cv2.imshow('lol', X_test_bkp[200])
-    # cv2.waitKey(0)
