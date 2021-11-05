@@ -44,8 +44,8 @@ def resize_all(src, pklname, include, width=228, height=None):
             current_path = os.path.join(src, subdir)
 
             for index, file in enumerate(os.listdir(current_path)):
-                # if index >= 3000:
-                #     break
+                if index >= 100:
+                    break
                 if file[-3:] in {'jpg', 'png'}:
                     im = cv2.imread(os.path.join(current_path, file))
                     im = cv2.resize(im, (width, height))
@@ -59,9 +59,15 @@ class ColorDescriptor:
     def __init__(self, bins):
         self.bins = bins
         self.mt = MaskTransformer()
+        self.counter = 0
+        self.start = time.time()
 
     def describe(self, image):
         features = []
+
+        self.counter += 1
+        if self.counter % 100 == 0:
+            print("Batch complete (took {}s)".format(time.time()-self.start))
 
         mask = self.mt.mask_frame(image)
 
@@ -77,17 +83,17 @@ if __name__ == "__main__":
 
     start_stamp = time.time()
 
-    data_path = fr'{os.getenv("HOME")}/rep/car-color-recognition/assets/train_mask'
-    pkl_name = 'config/car_colors_masked'
+    data_path = fr'{os.getenv("HOME")}/rep/car-color-recognition/assets/train'
+    pkl_name = 'config/car_colors'
     include = {'white', 'gray', 'yellow', 'black', 'blue', 'green', 'red', 'cyan'}
     width = 228
 
-    # print("Resizing and pickling arrays of images...")
-    # resize_all(src=data_path, pklname=pkl_name, width=width, include=include)
-    # print("Pickling done")
+    print("Resizing and pickling arrays of images...")
+    resize_all(src=data_path, pklname=pkl_name, width=width, include=include)
+    print("Pickling done")
 
     print("Unpickling images data...", end="")
-    data = joblib.load(f'{pkl_name}_{width}x{width}px.pkl')
+    data = joblib.load(f'{pkl_name}_{width}x{width}pxSMALL.pkl')
     print("Done")
 
     # Post-unpickling Info
