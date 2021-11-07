@@ -8,7 +8,6 @@ import numpy as np
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
-from mask import MaskTransformer
 
 
 def log(variable):
@@ -42,7 +41,7 @@ def resize_all(src, pklname, include, width=228, height=None):
     data['data'] = []
     data['description'] = f"resized car images to ({width}x{height}) in rgb"
 
-    pklname = f"{pklname}_{width}x{height}pxSMALL.pkl"
+    pklname = f"{pklname}_{width}x{height}px.pkl"
 
     # read all images in PATH, resize and write to DESTINATION_PATH
     for subdir in os.listdir(src):
@@ -51,8 +50,8 @@ def resize_all(src, pklname, include, width=228, height=None):
             current_path = os.path.join(src, subdir)
 
             for index, file in enumerate(os.listdir(current_path)):
-                if index >= 500:
-                    break
+                # if index >= 500:
+                #     break
                 if file[-3:] in {'jpg', 'png'}:
                     im = cv2.imread(os.path.join(current_path, file))
                     im = cv2.resize(im, (width, height))
@@ -66,22 +65,17 @@ def resize_all(src, pklname, include, width=228, height=None):
 class ColorDescriptor:
     def __init__(self, bins):
         self.bins = bins
-        self.mt = MaskTransformer()
         self.counter = 0
         self.start = time.time()
 
     def describe(self, image):
         features = []
 
-        mask = self.mt.mask_frame(image)
-
-        hist = cv2.calcHist([image], [0, 1, 2], mask, self.bins, [0, 256, 0, 256, 0, 256])
+        hist = cv2.calcHist([image], [0, 1, 2], None, self.bins, [0, 256, 0, 256, 0, 256])
         hist = cv2.normalize(hist, hist).flatten()
         features.extend(hist)
 
         self.counter += 1
-        if self.counter % 50 == 0:
-            print("Batch complete [{:.2f}s] - {}/{}".format(time.time()-self.start, self.counter, len(data['data'])))
 
         return features
 
@@ -100,7 +94,7 @@ if __name__ == "__main__":
     # print("Pickling done")
 
     print("Unpickling images data...", end="")
-    data = joblib.load(f'{pkl_name}_{width}x{width}pxSMALL.pkl')
+    data = joblib.load(f'{pkl_name}_{width}x{width}px.pkl')
     print("Done")
 
     # Post-unpickling Info
@@ -117,7 +111,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.2,
+        test_size=0.3,
         shuffle=True,
         random_state=42,
     )
@@ -125,23 +119,12 @@ if __name__ == "__main__":
     # Histograms instead of raw images
     cd = ColorDescriptor((16, 16, 16))
 
-    print("Feature extraction...")
+    print("Feature extraction...", end="")
     X_train_bkp = copy.copy(X_train)
     X_test_bkp = copy.copy(X_test)
-    X_train = []
-    X_test = []
-    for index, x in enumerate(X_train_bkp):
-        try:
-            X_train.append(cd.describe(X_train_bkp[index]))
-        except:
-            pass
-
-    for index, x in enumerate(X_test_bkp):
-        try:
-            X_test.append(cd.describe(X_test_bkp[index]))
-        except:
-            pass
-    print("Done ({}/{} images. [{:.2f}])".format(cd.counter, len(data['data']), time.time()-cd.start))
+    X_train = list(map(lambda x:cd.describe(x), X_train))
+    X_test  = list(map(lambda x:cd.describe(x), X_test))
+    print("Done ({}/{} images. [{:.2f}s])".format(cd.counter, len(data['data']), time.time()-cd.start))
 
     # features_pkl = r"config/features.pkl"
     # joblib.dump([X_train, X_test], features_pkl)
@@ -176,7 +159,7 @@ if __name__ == "__main__":
 
     end_stamp = time.time()
     time_passed = end_stamp - start_stamp
-    print(f"Run took: {time_passed:.0f}s ({time_passed/60:.2f}m)")
+    print(f"Run took: {time_passed:.0f}s ({time_passed//60:.2f}m {time_passed%60:.2f}s)")
 
     # # Show predictions for a given color
     # color = 'black'
