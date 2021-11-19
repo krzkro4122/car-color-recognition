@@ -14,8 +14,8 @@ nmsThreshold = 0.2
 # Coco Names
 classesFile = r"config/coco.names"
 classNames = []
-with open(classesFile, 'rt') as f:
-    classNames = f.read().rstrip('\n').split('\n')
+with open(classesFile, "rt") as f:
+    classNames = f.read().rstrip("\n").split("\n")
 
 # Model Files
 # modelConfiguration = r"../config/yolov3-tiny.cfg"
@@ -26,6 +26,7 @@ modelWeights = r"config/yolov3.weights"
 net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+
 
 def findObjects(outputs, img):
     hT, wT, cT = img.shape
@@ -38,9 +39,9 @@ def findObjects(outputs, img):
             classId = np.argmax(scores)
             confidence = scores[classId]
             if confidence > confThreshold:
-                if classNames[classId] == 'car':
-                    w, h = int(det[2] * wT) , int(det[3] * hT)
-                    x, y = int((det[0] * wT) - w / 2) , int((det[1] * hT) - h / 2)
+                if classNames[classId] == "car":
+                    w, h = int(det[2] * wT), int(det[3] * hT)
+                    x, y = int((det[0] * wT) - w / 2), int((det[1] * hT) - h / 2)
                     bbox.append([x, y, w, h])
                     classIds.append(classId)
                     confs.append(float(confidence))
@@ -48,7 +49,6 @@ def findObjects(outputs, img):
     indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
 
     for i in indices:
-        i = i[0] # Only for video
         box = bbox[i]
         x, y, w, h = box[0], box[1], box[2], box[3]
 
@@ -58,6 +58,7 @@ def findObjects(outputs, img):
         # cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i] * 100)}%',
         #           (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
 
+
 def detect_from_image(img):
 
     print("Unpickling model...", end="")
@@ -65,11 +66,10 @@ def detect_from_image(img):
     mlp = joblib.load(config_file)
     print("Done")
 
-
     blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
     net.setInput(blob)
     layersNames = net.getLayerNames()
-    outputNames = [(layersNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
+    outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
     outputs = net.forward(outputNames)
 
     try:
@@ -78,7 +78,7 @@ def detect_from_image(img):
         print(f"Couldn't find a car in given frame")
         exit()
 
-    img_cropped = img[y:y + h, x:x + w]
+    img_cropped = img[y : y + h, x : x + w]
 
     width = height = 228
     img_cropped = cv2.resize(img_cropped, (width, height))
@@ -88,11 +88,10 @@ def detect_from_image(img):
 
     prediction = mlp.predict([image_colors])
 
-    img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (255, 0, 0), 2, cv2.LINE_AA)
-    cv2.imshow('Prediction', img)
-    cv2.imshow('Cropped', img_cropped)
+    img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+    cv2.imshow("Prediction", img)
     cv2.waitKey(0)
+
 
 def detect_from_video(cap):
 
@@ -113,16 +112,15 @@ def detect_from_video(cap):
         img = findObjects(outputs, img)
 
         width = height = 228
-        img = cv2.resize(img, (width, height)) #[:,:,::-1]
+        img = cv2.resize(img, (width, height))  # [:,:,::-1]
 
         cd = ColorDescriptor((16, 16, 16))
         image = cd.describe(img)
 
         prediction = mlp.predict([image])
 
-        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN,
-                        1, (255, 0, 0), 2, cv2.LINE_AA)
-        cv2.imshow('Image', img)
+        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 2, cv2.LINE_AA)
+        cv2.imshow("Image", img)
         cv2.waitKey(1)
 
     cap.release()
@@ -131,7 +129,7 @@ def detect_from_video(cap):
 
 if __name__ == "__main__":
     # --- Camera or demo video or demo picture --- #
-    img = cv2.imread(r"assets/tesla.jpg")
+    img = cv2.imread(r"assets/0197.jpg")
     # cap = cv2.VideoCapture(0)
     cap = cv2.VideoCapture(r"assets/cars.mp4")
 
