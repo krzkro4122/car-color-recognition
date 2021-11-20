@@ -65,11 +65,12 @@ def resize_and_pickle_all(src, pklname, include, width=228, height=None):
 
     height = height if height is not None else width
 
-    data = dict()
-    data["label"] = []
-    data["filename"] = []
-    data["data"] = []
-    data["description"] = f"resized car images to ({width}x{height}) in rgb"
+    data = {
+        'label': [],
+        'filename': [],
+        'data': [],
+        'description': f"resized car images to ({width}x{height}) in rgb",
+    }
 
     pklname = f"{pklname}_{width}x{height}px.pkl"
 

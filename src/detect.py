@@ -38,13 +38,12 @@ def findObjects(outputs, img):
             scores = det[5:]
             classId = np.argmax(scores)
             confidence = scores[classId]
-            if confidence > confThreshold:
-                if classNames[classId] == "car":
-                    w, h = int(det[2] * wT), int(det[3] * hT)
-                    x, y = int((det[0] * wT) - w / 2), int((det[1] * hT) - h / 2)
-                    bbox.append([x, y, w, h])
-                    classIds.append(classId)
-                    confs.append(float(confidence))
+            if confidence > confThreshold and classNames[classId] == 'car':
+                w, h = int(det[2] * wT) , int(det[3] * hT)
+                x, y = int((det[0] * wT) - w / 2) , int((det[1] * hT) - h / 2)
+                bbox.append([x, y, w, h])
+                classIds.append(classId)
+                confs.append(float(confidence))
 
     indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
 
@@ -75,7 +74,7 @@ def detect_from_image(img):
     try:
         x, y, w, h = findObjects(outputs, img)
     except:
-        print(f"Couldn't find a car in given frame")
+        print("Couldn't find a car in given frame")
         exit()
 
     img_cropped = img[y : y + h, x : x + w]
