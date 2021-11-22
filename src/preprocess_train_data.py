@@ -36,7 +36,7 @@ def timer(func):
         rv = func(*args, **kwargs)
         end_stamp = time.time()
         time_passed = end_stamp - start_stamp
-        print(f"Run took: {time_passed:.0f}s ({time_passed//60:.2f}m {time_passed%60:.2f}s)")
+        print(f"Run took: {time_passed:.0f}s ({time_passed//60}m {time_passed%60}s)")
 
         return rv
 
@@ -77,7 +77,7 @@ def resize_and_pickle_all(src, pklname, include, width=228, height=None):
     # read all images in PATH, resize and write to DESTINATION_PATH
     for subdir in os.listdir(src):
         if subdir in include:
-            print(subdir)
+            print(f"{subdir}...", end="")
             current_path = os.path.join(src, subdir)
 
             for index, file in enumerate(os.listdir(current_path)):
@@ -92,7 +92,7 @@ def resize_and_pickle_all(src, pklname, include, width=228, height=None):
 
         joblib.dump(data, pklname)
 
-    print("Pickling done")
+    print("Done")
 
 
 def feature_extraction(X_train, X_test, data):
@@ -100,11 +100,11 @@ def feature_extraction(X_train, X_test, data):
     # Histograms instead of raw images
     cd = ColorDescriptor((16, 16, 16))
 
-    X_train_bkp = copy.copy(X_train)
-    X_test_bkp = copy.copy(X_test)
     X_train = list(map(lambda x: cd.describe(x), X_train))
     X_test = list(map(lambda x: cd.describe(x), X_test))
     print("Done ({}/{} images. [{:.2f}s])".format(cd.counter, len(data["data"]), time.time() - cd.start))
+
+    return X_train, X_test
 
 
 def unpickle_data(pkl_name, width):
@@ -113,11 +113,11 @@ def unpickle_data(pkl_name, width):
     print("Done")
 
     # Post-unpickling Info
-    print("number of samples: ", len(data["data"]))
-    print("keys: ", list(data.keys()))
-    print("description: ", data["description"])
-    print("image shape: ", data["data"][0].shape)
-    print("labels:", np.unique(data["label"]))
+    # print("Number of samples: ", len(data["data"]))
+    # print("Keys: ", list(data.keys()))
+    # print("Description: ", data["description"])
+    # print("Image shape: ", data["data"][0].shape)
+    # print("Labels:", np.unique(data["label"]))
     print(f"The data spread: {Counter(data['label'])}")
 
     return data
@@ -146,6 +146,7 @@ def unpickle_model(config_file):
     print("Unpickling model...", end="")
     mlp = joblib.load(config_file)
     print("Done")
+    return mlp
 
 
 def generate_metrics(y_pred, y_test, data):
@@ -155,14 +156,13 @@ def generate_metrics(y_pred, y_test, data):
     print(classification_report(y_test, y_pred))
 
     print("Let's confuse some Matrices...")
-    confusion_matrices = []
+    # confusion_matrices = []
 
-    for label in data["label"]:
-        print(label)
-        confusion_matrices.append(confusion_matrix(y_test, y_pred, labels=label))
-        print()
+    # for label in data["label"]:
+    #     print(label)
+    cm = confusion_matrix(y_test, y_pred, labels=data["label"])
 
-    print(confusion_matrices)
+    print(cm)
 
 
 @timer
@@ -173,7 +173,7 @@ def main():
     include = {"white", "gray", "yellow", "black", "blue", "green", "red", "cyan"}
     width = 228
 
-    resize_and_pickle_all(src=data_path, pklname=pkl_name, width=width, include=include)
+    # resize_and_pickle_all(src=data_path, pklname=pkl_name, width=width, include=include)
 
     data = unpickle_data(pkl_name, width)
 
@@ -188,9 +188,9 @@ def main():
         random_state=42,
     )
 
-    feature_extraction(X_train, X_test, data)
+    X_train, X_test = feature_extraction(X_train, X_test, data)
 
-    train_and_pickle_model(X_train, y_train, config_file)
+    # train_and_pickle_model(X_train, y_train, config_file)
 
     mlp = unpickle_model(config_file)
 
