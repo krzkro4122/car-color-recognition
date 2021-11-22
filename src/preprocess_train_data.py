@@ -4,11 +4,12 @@ import copy
 import time
 import joblib
 import numpy as np
+import matplotlib.pyplot as plt
 
 from collections import Counter
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
 
 class ColorDescriptor:
@@ -36,7 +37,7 @@ def timer(func):
         rv = func(*args, **kwargs)
         end_stamp = time.time()
         time_passed = end_stamp - start_stamp
-        print(f"Run took: {time_passed:.0f}s ({time_passed//60}m {time_passed%60}s)")
+        print(f"Run took: {time_passed:.0f}s ({int(time_passed//60)}m {int(time_passed%60)}s)")
 
         return rv
 
@@ -61,15 +62,15 @@ def resize_and_pickle_all(src, pklname, include, width=228, height=None):
         set containing str
     """
 
-    print("Resizing and pickling arrays of images...")
+    print("Resizing and pickling arrays of images...", end="")
 
     height = height if height is not None else width
 
     data = {
-        'label': [],
-        'filename': [],
-        'data': [],
-        'description': f"resized car images to ({width}x{height}) in rgb",
+        "label": [],
+        "filename": [],
+        "data": [],
+        "description": f"resized car images to ({width}x{height}) in rgb",
     }
 
     pklname = f"{pklname}_{width}x{height}px.pkl"
@@ -149,7 +150,7 @@ def unpickle_model(config_file):
     return mlp
 
 
-def generate_metrics(y_pred, y_test, data):
+def generate_metrics(y_pred, y_test, data, X_test, mlp):
     print("Percentage correct: ", 100 * np.sum(y_pred == y_test) / len(y_test))
 
     print("Results on the test set:")
@@ -161,6 +162,9 @@ def generate_metrics(y_pred, y_test, data):
     # for label in data["label"]:
     #     print(label)
     cm = confusion_matrix(y_test, y_pred, labels=data["label"])
+
+    disp = ConfusionMatrixDisplay.from_estimator(mlp, X_test, y_test)
+    plt.show()
 
     print(cm)
 
@@ -196,7 +200,7 @@ def main():
 
     y_pred = mlp.predict(X_test)
 
-    generate_metrics(y_pred, y_test, data)
+    generate_metrics(y_pred, y_test, data, X_test, mlp)
 
 
 if __name__ == "__main__":
