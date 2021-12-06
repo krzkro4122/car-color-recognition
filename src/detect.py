@@ -82,6 +82,19 @@ def show_image(img, prediction, x, y, w, h):
     cv2.imshow("Prediction", img)
     cv2.waitKey(0)
 
+def show_video(img, prediction, x, y, w, h, out):
+    text_color = color2tuple(prediction[0])
+
+    cv2.rectangle(img, (x, y), (x + w, y + h), text_color, 2)
+    cv2.putText(img,f'{prediction[0]}',
+                (x + 5, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
+
+    if out:
+        out.write(img)
+    else:
+        cv2.imshow("Predictions", img)
+        cv2.waitKey(1)
+
 def detect_from_image(img):
 
     mlp = unpickle_model("config/color_recognition_mlp.pkl")
@@ -106,7 +119,7 @@ def detect_from_image(img):
 
     show_image(img, prediction, x, y, w, h)
 
-def detect_from_video(cap):
+def detect_from_video(cap, out=None):
 
     mlp = unpickle_model("config/color_recognition_mlp.pkl")
 
@@ -117,22 +130,26 @@ def detect_from_video(cap):
             break
 
         outputs = dnn_passthrough(img)
+        try:
+            x, y, w, h = findObjects(outputs, img)
 
-        img = findObjects(outputs, img)
+            img_cropped = img[y : y + h, x : x + w]
 
-        width = height = 228
-        img = cv2.resize(img, (width, height))
+            width = height = 228
+            img_cropped = cv2.resize(img_cropped, (width, height))
 
-        cd = ColorDescriptor((16, 16, 16))
-        image = cd.describe(img)
+            cd = ColorDescriptor((16, 16, 16))
+            image_colors = cd.describe(img_cropped)
 
-        prediction = mlp.predict([img])
+            prediction = mlp.predict([image_colors])
 
-        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, color2tuple(prediction[0]), 2, cv2.LINE_AA)
-        cv2.imshow("Image", img)
-        cv2.waitKey(1)
+            show_video(img, prediction, x, y, w, h, out)
+        except:
+            cv2.imshow("Predictions", img)
+            cv2.waitKey(1)
 
     cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 
@@ -153,8 +170,10 @@ if __name__ == "__main__":
     # --- VIDEO --- #
     def run_on_video():
         # cap = cv2.VideoCapture(0)
-        cap = cv2.VideoCapture(r"assets/cars.mp4")
-        detect_from_video(cap)
+        # cap = cv2.VideoCapture(r"assets/cars.mp4")
+        cap = cv2.VideoCapture(r"assets/blue_car_trim.mp4")
+        out = cv2.VideoWriter(r"assets/output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (960, 540))
+        detect_from_video(cap, out)
 
-    run_on_images()
-    # run_on_video()
+    # run_on_images()
+    run_on_video()

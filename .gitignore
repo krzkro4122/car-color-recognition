@@ -3,3 +3,4 @@ venv
 config/*.weights
 config/*.h5
 config/*.pkl
+*.pyc
