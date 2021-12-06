@@ -2,7 +2,7 @@ import cv2
 import joblib
 import numpy as np
 
-from preprocess_train_data import ColorDescriptor
+from preprocess_train_data import ColorDescriptor, unpickle_data, unpickle_model
 
 
 # --- DETECTION CONFIGURATION --- #
@@ -53,23 +53,40 @@ def findObjects(outputs, img):
 
         return x, y, w, h
 
-        # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0 , 255), 2)
-        # cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i] * 100)}%',
-        #           (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
-
-
-def detect_from_image(img):
-
-    print("Unpickling model...", end="")
-    config_file = r"config/color_recognition_mlp.pkl"
-    mlp = joblib.load(config_file)
-    print("Done")
-
+def dnn_passthrough(img):
     blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
     net.setInput(blob)
     layersNames = net.getLayerNames()
     outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
-    outputs = net.forward(outputNames)
+    return net.forward(outputNames)
+
+def color2tuple(color_label):
+    colors = {
+        "black":  (0, 0, 0),
+        "blue":   (0xFF, 0, 0),
+        "cyan":   (0xF5, 0xCE, 0x42),
+        "gray":   (0x59, 0x59, 0x59),
+        "green":  (0x00, 0xFF, 0),
+        "red":    (0, 0, 0xFF),
+        "white":  (0xFF, 0xFF, 0xFF),
+        "yellow": (0, 0xE6, 0xff),
+    }
+    return colors[color_label]
+
+def show_image(img, prediction, x, y, w, h):
+    text_color = color2tuple(prediction[0])
+
+    cv2.rectangle(img, (x, y), (x + w, y + h), text_color, 2)
+    cv2.putText(img,f'{prediction[0]}',
+                (x + 5, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
+    cv2.imshow("Prediction", img)
+    cv2.waitKey(0)
+
+def detect_from_image(img):
+
+    mlp = unpickle_model("config/color_recognition_mlp.pkl")
+
+    outputs = dnn_passthrough(img)
 
     try:
         x, y, w, h = findObjects(outputs, img)
@@ -87,38 +104,31 @@ def detect_from_image(img):
 
     prediction = mlp.predict([image_colors])
 
-    img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
-    cv2.imshow("Prediction", img)
-    cv2.waitKey(0)
-
+    show_image(img, prediction, x, y, w, h)
 
 def detect_from_video(cap):
 
-    print("Unpickling model...", end="")
-    config_file = r"config/color_recognition_mlp_masked.pkl"
-    mlp = joblib.load(config_file)
-    print("Done")
+    mlp = unpickle_model("config/color_recognition_mlp.pkl")
 
     while cap.isOpened():
         success, img = cap.read()
+        # Stop if no video left to show
+        if not success:
+            break
 
-        blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
-        net.setInput(blob)
+        outputs = dnn_passthrough(img)
 
-        layersNames = net.getLayerNames()
-        outputNames = [(layersNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
-        outputs = net.forward(outputNames)
         img = findObjects(outputs, img)
 
         width = height = 228
-        img = cv2.resize(img, (width, height))  # [:,:,::-1]
+        img = cv2.resize(img, (width, height))
 
         cd = ColorDescriptor((16, 16, 16))
         image = cd.describe(img)
 
-        prediction = mlp.predict([image])
+        prediction = mlp.predict([img])
 
-        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 2, cv2.LINE_AA)
+        img = cv2.putText(img, prediction[0], (50, 50), cv2.FONT_HERSHEY_PLAIN, 1, color2tuple(prediction[0]), 2, cv2.LINE_AA)
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
@@ -127,10 +137,24 @@ def detect_from_video(cap):
 
 
 if __name__ == "__main__":
-    # --- Camera or demo video or demo picture --- #
-    img = cv2.imread(r"assets/0197.jpg")
-    # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture(r"assets/cars.mp4")
 
-    detect_from_image(img)
-    # detect_from_video(cap)
+    # --- IMAGES --- #
+    def run_on_images():
+        yellow_car = cv2.imread(r"assets\real_tests\sanfran_yellow.jpg")
+        blue_car = cv2.imread(r"assets\real_tests\seattle_blue.jpg")
+        red_car = cv2.imread(r"assets\0197.jpg")
+        gta_screen = cv2.imread(r"assets\gta5.jpg")
+
+        detect_from_image(yellow_car)
+        detect_from_image(blue_car)
+        detect_from_image(red_car)
+        detect_from_image(gta_screen)
+
+    # --- VIDEO --- #
+    def run_on_video():
+        # cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(r"assets/cars.mp4")
+        detect_from_video(cap)
+
+    run_on_images()
+    # run_on_video()
