@@ -114,7 +114,7 @@ def unpickle_data(pkl_name, width):
     print("Done")
 
     # Post-unpickling Info
-    # print("Number of samples: ", len(data["data"]))
+    print("Number of samples: ", len(data["data"]))
     # print("Keys: ", list(data.keys()))
     # print("Description: ", data["description"])
     # print("Image shape: ", data["data"][0].shape)
