@@ -101,11 +101,13 @@ def feature_extraction(X_train, X_test, data):
     # Histograms instead of raw images
     cd = ColorDescriptor((16, 16, 16))
 
+    X_train_bkp = copy.copy(X_train)
+    X_test_bkp = copy.copy(X_test)
     X_train = list(map(lambda x: cd.describe(x), X_train))
     X_test = list(map(lambda x: cd.describe(x), X_test))
     print("Done ({}/{} images. [{:.2f}s])".format(cd.counter, len(data["data"]), time.time() - cd.start))
 
-    return X_train, X_test
+    return X_train, X_test, X_train_bkp, X_test_bkp
 
 
 def unpickle_data(pkl_name, width):
@@ -156,17 +158,28 @@ def generate_metrics(y_pred, y_test, data, X_test, mlp):
     print("Results on the test set:")
     print(classification_report(y_test, y_pred))
 
-    print("Let's confuse some Matrices...")
-    # confusion_matrices = []
+    print("Confusing the Matrix...", end="")
 
-    # for label in data["label"]:
-    #     print(label)
+    confusion_matrix_path = r"assets/confusion_matrix.png"
+
     cm = confusion_matrix(y_test, y_pred, labels=data["label"])
 
     disp = ConfusionMatrixDisplay.from_estimator(mlp, X_test, y_test)
-    plt.show()
+    plt.savefig(confusion_matrix_path)
 
-    print(cm)
+    print(f"Done [Saved: {confusion_matrix_path}]")
+
+
+def diagonal_deposition(y_test, y_pred, X_test_bkp):
+
+    for index, guess in enumerate(y_pred):
+        if guess != y_test[index]:
+            cv2.destroyAllWindows()
+            cv2.imshow(f'{guess}', X_test_bkp[index])
+            key = cv2.waitKey(2500) & 0xFF
+
+            if key == ord('s'):
+                cv2.imwrite("assets/fakes/{}.jpg".format(guess), X_test_bkp[index])
 
 
 @timer
@@ -189,10 +202,10 @@ def main():
         y,
         test_size=0.3,
         shuffle=True,
-        random_state=42,
+        # random_state=42,
     )
 
-    X_train, X_test = feature_extraction(X_train, X_test, data)
+    X_train, X_test, X_train_bkp, X_test_bkp = feature_extraction(X_train, X_test, data)
 
     # train_and_pickle_model(X_train, y_train, config_file)
 
@@ -201,6 +214,8 @@ def main():
     y_pred = mlp.predict(X_test)
 
     generate_metrics(y_pred, y_test, data, X_test, mlp)
+
+    diagonal_deposition(y_test, y_pred, X_test_bkp)
 
 
 if __name__ == "__main__":
