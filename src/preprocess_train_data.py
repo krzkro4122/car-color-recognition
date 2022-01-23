@@ -43,7 +43,6 @@ def timer(func):
 
     return wrapper
 
-
 def resize_and_pickle_all(src, pklname, include, width=228, height=None):
     """
     load images from path, resize them and write them as arrays to a dictionary,
@@ -95,7 +94,6 @@ def resize_and_pickle_all(src, pklname, include, width=228, height=None):
 
     print("Done")
 
-
 def feature_extraction(X_train, X_test, data):
     print("Feature extraction...", end="")
     # Histograms instead of raw images
@@ -106,7 +104,6 @@ def feature_extraction(X_train, X_test, data):
     print("Done ({}/{} images. [{:.2f}s])".format(cd.counter, len(data["data"]), time.time() - cd.start))
 
     return X_train, X_test
-
 
 def unpickle_data(pkl_name, width):
     print("Unpickling images data...", end="")
@@ -122,7 +119,6 @@ def unpickle_data(pkl_name, width):
     print(f"The data spread: {Counter(data['label'])}")
 
     return data
-
 
 def train_and_pickle_model(X_train, y_train, config_file):
     print("Machine is learning...", end="")
@@ -142,13 +138,11 @@ def train_and_pickle_model(X_train, y_train, config_file):
     joblib.dump(mlp, config_file)
     print("Done")
 
-
 def unpickle_model(config_file):
     print("Unpickling model...", end="")
     mlp = joblib.load(config_file)
     print("Done")
     return mlp
-
 
 def generate_metrics(y_pred, y_test, data, X_test, mlp):
     print("Percentage correct: ", 100 * np.sum(y_pred == y_test) / len(y_test))
@@ -167,7 +161,6 @@ def generate_metrics(y_pred, y_test, data, X_test, mlp):
     plt.show()
 
     print(cm)
-
 
 @timer
 def main():
@@ -201,7 +194,6 @@ def main():
     y_pred = mlp.predict(X_test)
 
     generate_metrics(y_pred, y_test, data, X_test, mlp)
-
 
 if __name__ == "__main__":
     main()

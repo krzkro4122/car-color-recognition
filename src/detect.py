@@ -29,7 +29,7 @@ net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
 
 def findObjects(outputs, img):
-    hT, wT, cT = img.shape
+    hT, wT, _ = img.shape
     bbox = []
     classIds = []
     confs = []
