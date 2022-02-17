@@ -37,7 +37,7 @@ def timer(func):
         rv = func(*args, **kwargs)
         end_stamp = time.time()
         time_passed = end_stamp - start_stamp
-        print(f"Run took: {time_passed:.0f}s ({int(time_passed//60)}m {int(time_passed%60)}s)")
+        print(f"Run took: {time_passed:.4f}s ({int(time_passed//60)}m {int(time_passed%60)}s)")
 
         return rv
 
@@ -121,17 +121,23 @@ def unpickle_data(pkl_name, width):
     return data
 
 def train_and_pickle_model(X_train, y_train, config_file):
+
+    @timer
+    def train_model():
+        mlp = MLPClassifier(
+            hidden_layer_sizes=(100, 100, 100),
+            max_iter=5000,
+            alpha=0.005,
+            solver="adam",
+            random_state=2,
+            activation="relu",
+            learning_rate="constant",
+        )
+        mlp.fit(X_train, y_train)
+        return mlp
+
     print("Machine is learning...", end="")
-    mlp = MLPClassifier(
-        hidden_layer_sizes=(100, 100, 100),
-        max_iter=5000,
-        alpha=0.005,
-        solver="adam",
-        random_state=2,
-        activation="relu",
-        learning_rate="constant",
-    )
-    mlp.fit(X_train, y_train)
+    mlp = train_model()
     print("Done")
 
     print("Pickling model...", end="")
@@ -157,10 +163,8 @@ def generate_metrics(y_pred, y_test, data, X_test, mlp):
     #     print(label)
     cm = confusion_matrix(y_test, y_pred, labels=data["label"])
 
-    disp = ConfusionMatrixDisplay.from_estimator(mlp, X_test, y_test)
+    disp = ConfusionMatrixDisplay.from_estimator(mlp, X_test, y_test, colorbar=False, normalize=None, values_format=None)
     plt.show()
-
-    print(cm)
 
 @timer
 def main():
@@ -180,7 +184,7 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.3,
+        test_size=0.35,
         shuffle=True,
         random_state=42,
     )

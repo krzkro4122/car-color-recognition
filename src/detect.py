@@ -1,8 +1,10 @@
+from statistics import mean
 import cv2
+import time
 import joblib
 import numpy as np
 
-from preprocess_train_data import ColorDescriptor, unpickle_data, unpickle_model
+from preprocess_train_data import ColorDescriptor, unpickle_data, unpickle_model, timer
 
 
 # --- DETECTION CONFIGURATION --- #
@@ -117,7 +119,7 @@ def show_image(img, predictions, boxes):
     put_rectangles(img, predictions, boxes)
 
     cv2.imshow("Prediction", img)
-    cv2.waitKey(0)
+    cv2.waitKey(1)
 
 def show_video(img, predictions, boxes, out):
     put_rectangles(img, predictions, boxes)
@@ -144,6 +146,7 @@ def yolo_showcase():
     cv2.waitKey(0)
     cv2.imwrite(r'assets/dogs_yolo.jpg', img)
 
+@timer
 def detect_from_image(img):
 
     mlp = unpickle_model("config/color_recognition_mlp.pkl")
@@ -175,6 +178,10 @@ def detect_from_image(img):
 
 def detect_from_video(cap, out=None):
 
+    prev_frame_time = 0
+    new_frame_time = 0
+    fps_s = []
+
     mlp = unpickle_model("config/color_recognition_mlp.pkl")
 
     while cap.isOpened():
@@ -182,6 +189,8 @@ def detect_from_video(cap, out=None):
         # Stop if no video left to show
         if not success:
             break
+
+        new_frame_time = time.time()
 
         outputs = dnn_passthrough(img)
         try:
@@ -202,30 +211,118 @@ def detect_from_video(cap, out=None):
 
                 predictions.append(mlp.predict([image_colors]))
 
+            fps = 1 / (new_frame_time - prev_frame_time)
+            fps_s.append(fps)
+
+            prev_frame_time = new_frame_time
+
+            cv2.putText(img, f"{fps:2f}", (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+
             show_video(img, predictions, boxes, out)
         except:
             cv2.imshow("Predictions", img)
             cv2.waitKey(1)
+
+    fps_sn = np.array(fps_s)
+
+    print(f"Max FPS: {max(fps_s):2f}")
+    print(f"75th: {np.percentile(fps_sn, 75):2f}")
+    print(f"50th: {np.percentile(fps_sn, 50):2f}")
+    print(f"25th: {np.percentile(fps_sn, 25):2f}")
+    print(f"Min FPS: {min(fps_s):2f}")
+    print(f"Average FPS: {sum(fps_s) / len(fps_s):2f}")
 
     cap.release()
     if out:
         out.release()
     cv2.destroyAllWindows()
 
+@timer
+def only_detection_image(img):
 
-if __name__ == "__main__":
+    outputs = dnn_passthrough(img)
 
+    try:
+        boxes = findObjects(outputs, img)
+    except:
+        print("Couldn't find a car in given frame")
+        exit()
+
+    for box in boxes:
+        x, y, w, h = box[0], box[1], box[2], box[3]
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(img,'car', (x + 5, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+    cv2.imshow("Prediction", img)
+
+@timer
+def only_detection_video(cap, out=None):
+
+    prev_frame_time = 0
+    new_frame_time = 0
+    fps_s = []
+
+    while cap.isOpened():
+        success, img = cap.read()
+        # Stop if no video left to show
+        if not success:
+            break
+
+        new_frame_time = time.time()
+
+        outputs = dnn_passthrough(img)
+        try:
+            boxes = findObjects(outputs, img)
+
+            for box in boxes:
+                x, y, w, h = box[0], box[1], box[2], box[3]
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(img,'car', (x + 5, y + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+            fps = 1 / (new_frame_time - prev_frame_time)
+            fps_s.append(fps)
+
+            prev_frame_time = new_frame_time
+
+            cv2.putText(img, f"{fps:2f}", (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
+
+            if out:
+                out.write(img)
+            else:
+                cv2.imshow("Predictions", img)
+                cv2.waitKey(1)
+
+        except:
+            cv2.imshow("Predictions", img)
+            cv2.waitKey(1)
+
+    fps_sn = np.array(fps_s)
+
+    print(f"Max FPS: {max(fps_s):2f}")
+    print(f"75th: {np.percentile(fps_sn, 75):2f}")
+    print(f"50th: {np.percentile(fps_sn, 50):2f}")
+    print(f"25th: {np.percentile(fps_sn, 25):2f}")
+    print(f"Min FPS: {min(fps_s):2f}")
+    print(f"Average FPS: {sum(fps_s) / len(fps_s):2f}")
+
+    cap.release()
+    if out:
+        out.release()
+    cv2.destroyAllWindows()
+
+def main():
     # --- IMAGES --- #
     def run_on_images():
-        # yellow_car = cv2.imread(r"assets\real_tests\sanfran_yellow.jpg")
-        # blue_car = cv2.imread(r"assets\real_tests\seattle_blue.jpg")
-        # red_car = cv2.imread(r"assets\0197.jpg")
+        yellow_car = cv2.imread(r"assets\real_tests\sanfran_yellow.jpg")
+        blue_car = cv2.imread(r"assets\real_tests\seattle_blue.jpg")
+        red_car = cv2.imread(r"assets\0197.jpg")
         gta_screen = cv2.imread(r"assets\gta5.jpg")
 
+        detect_from_image(gta_screen)
         # detect_from_image(yellow_car)
         # detect_from_image(blue_car)
         # detect_from_image(red_car)
-        detect_from_image(gta_screen)
+        # only_detection_image(gta_screen)
 
     # --- VIDEO --- #
     def run_on_video():
@@ -234,7 +331,12 @@ if __name__ == "__main__":
         cap = cv2.VideoCapture(r"assets/blue_car.mp4")
         out = cv2.VideoWriter(r"assets/output.avi", cv2.VideoWriter_fourcc(*"MJPG"), 30, (960, 540))
         detect_from_video(cap)
+        # only_detection_video(cap)
 
-    # run_on_images()
-    run_on_video()
+    run_on_images()
+    # run_on_video()
     # yolo_showcase()
+
+if __name__ == "__main__":
+    for _ in range(10):
+        main()
