@@ -174,7 +174,7 @@ def main():
     include = {"white", "gray", "yellow", "black", "blue", "green", "red", "cyan"}
     width = 228
 
-    # resize_and_pickle_all(src=data_path, pklname=pkl_name, width=width, include=include)
+    resize_and_pickle_all(src=data_path, pklname=pkl_name, width=width, include=include)
 
     data = unpickle_data(pkl_name, width)
 
@@ -185,13 +185,14 @@ def main():
         X,
         y,
         test_size=0.35,
+        train_size=0.65,
         shuffle=True,
         random_state=42,
     )
 
     X_train, X_test = feature_extraction(X_train, X_test, data)
 
-    # train_and_pickle_model(X_train, y_train, config_file)
+    train_and_pickle_model(X_train, y_train, config_file)
 
     mlp = unpickle_model(config_file)
 

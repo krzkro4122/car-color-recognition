@@ -119,7 +119,7 @@ def show_image(img, predictions, boxes):
     put_rectangles(img, predictions, boxes)
 
     cv2.imshow("Prediction", img)
-    cv2.waitKey(1)
+    cv2.waitKey()
 
 def show_video(img, predictions, boxes, out):
     put_rectangles(img, predictions, boxes)
@@ -315,13 +315,15 @@ def main():
     def run_on_images():
         yellow_car = cv2.imread(r"assets\real_tests\sanfran_yellow.jpg")
         blue_car = cv2.imread(r"assets\real_tests\seattle_blue.jpg")
-        red_car = cv2.imread(r"assets\0197.jpg")
-        gta_screen = cv2.imread(r"assets\gta5.jpg")
+        tesla = cv2.imread(r"assets\tesla.jpg")
+        # gta_screen = cv2.imread(r"assets\gta5.jpg")
+        # maluch = cv2.imread(r"assets\maluch.png")
 
-        detect_from_image(gta_screen)
+        # detect_from_image(maluch)
+        # detect_from_image(gta_screen)
         # detect_from_image(yellow_car)
         # detect_from_image(blue_car)
-        # detect_from_image(red_car)
+        detect_from_image(tesla)
         # only_detection_image(gta_screen)
 
     # --- VIDEO --- #
@@ -338,5 +340,5 @@ def main():
     # yolo_showcase()
 
 if __name__ == "__main__":
-    for _ in range(10):
-        main()
+    main()
+    # input()
