@@ -2,7 +2,7 @@
 
 This project is a tool that detects a car's dominant color from one of these classes:
 
-![Examples of data from each color group](assets/example_data.png)
+![Examples of data from each color group](project/assets/example_data.png)
 
 ## Features
 
@@ -16,7 +16,7 @@ This project is a tool that detects a car's dominant color from one of these cla
 
 ## Used technologies
 
-![Used technologies](assets/used_technologies.png)
+![Used technologies](project/assets/used_technologies.png)
 
 - `python`
   - numpy
@@ -50,9 +50,9 @@ Download the needed weights and models:
 
 ### Image
 
-![Example on an image #1](assets/image_example.png)
-![Example on an image #2](assets/tesla_example.png)
+![Example on an image #1](project/assets/image_example.png)
+![Example on an image #2](project/assets/tesla_example.png)
 
 ### Video
 
-![Example on video](assets/output.gif)
+![Example on video](project/assets/output.gif)

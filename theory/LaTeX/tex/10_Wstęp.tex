@@ -1,0 +1,50 @@
+\section*{Wstęp} \addcontentsline{toc}{section}{Wstęp}
+
+\textbf{Kolor} to jedna z kluczowych cech, dzięki którym możemy rozróżnić pojazdy w ruchu drogowym. Dlatego też, systemy mające za zadanie identyfikację lub klasyfikację samochodów w dużej mierzę biorą pod uwagę ich kolor. 
+Razem z kształtem, tablicami rejestracyjnymi i modelem samochodu uzyskujemy ogromne możliwości automatyzacyjne różnych aspektów ruchu drogowego. 
+Przykłady najważniejszych czynności, których usprawnienie jest możliwe dzięki użyciu inteligentnych systemów kontroli ruchu drogowego to: 
+\begin{itemize}
+    \item Sterowanie ruchem
+    \item Śledzenie transportu dóbr i wytyczanie optymalnych tras dostaw
+    \item Poprawa bezpieczeństwa ruchu drogowego
+    
+    \begin{itemize}
+        \item \textbf{Egzekwowania prawa} - identyfikacja pojazdu w celach nałożenia kary pieniężnej na osobę prowadzącą samochód, którym popełnione zostało wykroczenie.
+        
+        \item \textbf{Aktywne wspomaganie organów ścigania} - śledzenie pojazdu w razie pościgu w celu namierzenia go oraz wyznaczenie potencjalnego celu ucieczki.
+    \end{itemize}
+\end{itemize}
+Oprócz tego, algorytm pozwalający programowo rozpoznać kolor samochodu może potencjalnie pomóc w rozwiązaniu innych, bardziej niszowych problemów. Na przykład:
+
+\begin{itemize}
+
+    \item Zautomatyzowanie wszelkich pomiarów statystycznych ruchu drogowego związanych z tematyką koloru pojazdów.
+    
+    \item Optymalizacja wyszukiwarek portali e-commerce pod kątem wyceny aut na podstawie ich koloru
+    \begin{itemize}
+        \item Auta o takiej samej specyfikacji, lecz innym kolorze potrafią znacznie różnić się ceną. Informacja o tym jaką część kosztu stanowi lakier pojazdu może pomóc znaleźć bardziej opłacalną alternatywę potencjalnym kupcom.
+    \end{itemize}
+    
+    \item Zwiększenie dostępności systemów implementujących rozpoznawanie kolorów przez udostępnianie kodu na podstawie otwartego źródła.
+\end{itemize}
+Zaprojektowany algorytm, w skrócie, działa następująco:
+\begin{itemize}
+    \item Wytrenowanie modelu uczenia maszynowego danymi ze zbioru
+    \footnote{Użyty zbiór danych pochodzi z publikacji 'Vehicle Color Recognition on an Urban Road by Feature Context.' \cite{chen_ref}}
+    \item Załadowanie obrazu lub pojedynczej klatki filmu
+    \item Wykrycie i zlokalizowanie pojazdów
+    \item Wycięcie pojazdów oraz na każdym z nich kolejno:
+        \begin{itemize}
+            \item Przeskalowanie obrazu do narzuconego kształtu (unifikacja wymiarów obrazów)
+            \item Ekstrakcja wartości kanałów R, G i B do postaci histogramu
+            \item Użycie modelu w celu zdeterminowania koloru samochodu na podstawie danych z histogramu
+            \item Wizualizacja otrzymanej informacji o kolorze oraz lokalizacji pojazdu w formie kolorowego prostokąta opisanego na obwiedni auta.
+        \end{itemize}
+\end{itemize}
+
+W kolejnym rozdziale pracy przewidziane zostało wprowadzenie do koncepcji takich jak uczenie maszynowe, modele w uczeniu maszynowym (skupiając się na modelu sieci neuronowej)  oraz techniki przetwarzania obrazu w celu optymalizacji wydajności uczenia maszynowego.
+
+Następnie przybliżony zostanie aktualny stan wiedzy o tematyce rozpoznawania kolorów z obrazu oraz już istniejące tego typu rozwiązania. 
+Dostępne biblioteki i technologie stosowane do rozpoznawania kolorów oraz te użyte przy przeprowadzaniu empirycznej części projektu. Wyjaśnione zostaną napotkane problemy dotyczące doboru używanych narzędzi oraz technik.
+
+Na koniec omówiona zostanie otrzymana funkcjonalność systemu, jego wydajność, niedociągnięcia oraz wnioski wyciągnięte z wyniku pracy.

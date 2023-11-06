@@ -1,0 +1,44 @@
+\documentclass[twoside,a4paper,12pt]{article}
+\input{tex/00_preambule.tex}
+
+\author{Krzysztof Król}
+\title{Zaprojektowanie i zaimplementowanie algorytmu do rozpoznawania koloru samochodów osobowych}
+\setTitleEnglish{Design and Implementation of an Algorithm for Color Recognition of a Car}
+\setDepartment{Wydział Informatyki, Elektroniki i Telekomunikacji}
+\setFaculty{Elektronika i Telekomunikacja}
+\setInstitute{Instytut Telekomunikacji}
+\setSupervisor{dr inż. Michał Grega}
+\setReviewer{dr inż. Andrzej Matiolański}
+
+\begin{document}
+\pagestyle{empty}
+
+\maketitle
+\null
+\newpage
+
+\pagestyle{plain}
+\linespread{1.3}
+\selectfont
+
+\newpage
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+\pagenumbering{arabic}
+
+\include{tex/10_Wstęp}
+\include{tex/20_Wprowadzenie_techniczne}
+\include{tex/30_Aktualny_stan_wiedzy}
+\include{tex/40_Dostępne_i_użyte_technologie}
+\include{tex/50_Wyniki_części_praktycznej}
+\include{tex/99_Podsumowanie}
+
+\addcontentsline{toc}{section}{Literatura}
+\bibliography{bibliography.bib}
+\bibliographystyle{ieeetr}
+\end{document}

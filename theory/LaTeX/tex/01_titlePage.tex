@@ -1,0 +1,100 @@
+\newcommand{\setSupervisor}[1]{
+    \newcommand{\supervisor}{#1}
+}
+\newcommand{\setFaculty}[1]{
+    \newcommand{\faculty}{#1}
+}
+
+\newcommand{\setInstitute}[1]{
+    \newcommand{\institute}{#1}
+}
+
+\newcommand{\setDepartment}[1]{
+    \newcommand{\department}{#1}
+}
+
+\newcommand{\setReviewer}[1]{
+    \newcommand{\reviewer}{#1}
+}
+
+\newcommand{\setTitleEnglish}[1]{
+    \newcommand{\titleEnglish}{#1}
+}
+
+\makeatletter
+\renewcommand{\maketitle}{\begin{titlepage}
+        \includegraphics[height=37.5mm]{img/agh_nzw_a_pl_1w_wbr_cmyk}\\
+        \rule{30mm}{0pt}
+        {\large \textsf{\department}}\\
+        \rule{\textwidth}{3pt}\\
+        \rule[2ex]
+        {\textwidth}{1pt}\\
+        \begin{center}
+            \vspace{10ex}
+            {\LARGE \bf \textsf{Praca inżynierska}}\\
+            \vspace{15ex}
+        % ------------------------ TYTUL PRACY --------------------------------------
+            {\bf \huge \textsf{\@title}}\\
+            \vspace{10ex}
+            {\bf \huge \textsf{\titleEnglish}}\\
+            \vspace{15ex}
+        \end{center}
+        % --------------------------- IMIE I NAZWISKO -------------------------------
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushleft}
+                {\large Autor:}
+            \end{flushleft}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushright}
+                {\large \bf \textsf{\@author}}\\
+            \end{flushright}
+        \end{minipage}
+        % ------------------------ KIERUNEK STUDIÓW ---------------------------------
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushleft}
+                {\large Kierunek studiów:}
+            \end{flushleft}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushright}
+                {\large \bf \textsf{\faculty}}\\
+            \end{flushright}
+        \end{minipage}
+        \hfill
+        % ------------------------ OPIEKUN PRACY ----------------------------------
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushleft}
+                {\large Opiekun:}
+            \end{flushleft}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushright}
+                {\large \bf \textsf{\supervisor}}\\
+            \end{flushright}
+        \end{minipage}
+        \hfill
+        % ------------------------ INSTYTUT----------------------------------------
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushleft}
+                {\large Instytut:}
+            \end{flushleft}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.5\textwidth}
+            \begin{flushright}
+                {\large \bf \textsf{\institute}}\\
+            \end{flushright}
+        \end{minipage}
+        
+        \vspace{15ex}
+        
+        \begin{center}
+            {\large \bf \textsf{Kraków, \@date}}
+        \end{center}
+    \end{titlepage}%
+}
+\makeatother
